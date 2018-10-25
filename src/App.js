@@ -20,6 +20,19 @@ const list = [
     },
 ];
 
+const user = {
+    firstname: 'quang',
+    lastname: 'son'
+};
+
+const users = [
+    'Robin',
+    'Mary',
+    'Jane'
+];
+
+const isSearched = (searchTerm) => (item) => !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
+
 class Developer {
     constructor(firstname, lastname) {
         this.firstname = firstname;
@@ -31,6 +44,48 @@ class Developer {
     }
 }
 
+class Search extends Component {
+    render() {
+        const {value, onChange} = this.props;
+        return (
+            <form>
+                <input
+                    type="text"
+                    value={value}
+                    onChange={onChange}
+                />
+            </form>
+        );
+    }
+}
+
+class Table extends Component {
+    render() {
+        const {list, searchTerm, onDismiss} = this.props;
+        return (
+            <ul>
+                {list.filter(isSearched(searchTerm)).map(item =>
+                    <li key={item.objectID}>
+                        <span>
+                            <a href={item.url}>{item.title}</a>
+                        </span>
+                        <span>{item.author}</span>
+                        <span>{item.num_comments}</span>
+                        <span>{item.points}</span>
+                        <span>
+                            <button onClick={() =>
+                                onDismiss(item.objectID)
+                            }>
+                                Dismiss
+                            </button>
+                        </span>
+                    </li>
+                )}
+            </ul>
+        );
+    }
+}
+
 class App extends Component {
     constructor(props) {
         super(props);
@@ -39,19 +94,16 @@ class App extends Component {
             searchTerm: '',
         };
 
-        this.dismissItem = this.dismissItem.bind(this);
+        this.onDismiss = this.onDismiss.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
-        this.isSearched = this.isSearched.bind(this);
     }
 
-    dismissItem(id) {
+    onDismiss(id) {
         const updatedList = this.state.list.filter(item => item.objectID !== id);
         this.setState({
             list: updatedList
         });
     }
-
-    isSearched = (searchTerm) => (item) => !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
     onSearchChange(event) {
         this.setState({
@@ -64,36 +116,24 @@ class App extends Component {
         console.log(robin.getName());
 
         const helloWorld = 'Hello, welcome to React,';
-        let username = 'sonvq';
+        const {firstname, lastname} = user;
+        const [userOne, userTwo, userThree] = users;
+        const {list, searchTerm} = this.state;
+
         return (
             <div className="App">
-                <h2>{helloWorld} {username}!!!</h2>
-                <form>
-                    <input
-                        type="text"
-                        onChange={this.onSearchChange}
-                    />
+                <h2>{helloWorld} {firstname} {lastname}!!!</h2>
+                <h3>List of users are: {userOne}, {userTwo}, {userThree}</h3>
+                <Search
+                    onChange={this.onSearchChange}
+                    value={searchTerm}
+                />
 
-                </form>
-                <ul>
-                    {this.state.list.filter(this.isSearched(this.state.searchTerm)).map(item =>
-                        <li key={item.objectID}>
-                            <span>
-                                <a href={item.url}>{item.title}</a>
-                            </span>
-                            <span>{item.author}</span>
-                            <span>{item.num_comments}</span>
-                            <span>{item.points}</span>
-                            <span>
-                                <button onClick={() =>
-                                    this.dismissItem(item.objectID)
-                                }>
-                                    Dismiss
-                                </button>
-                            </span>
-                        </li>
-                    )}
-                </ul>
+                <Table
+                    searchTerm={searchTerm}
+                    onDismiss={this.onDismiss}
+                    list={list}
+                />
             </div>
         );
     }
