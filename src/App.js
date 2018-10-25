@@ -36,15 +36,26 @@ class App extends Component {
         super(props);
         this.state = {
             list,
+            searchTerm: '',
         };
 
-        this.onDismiss = this.onDismiss.bind(this);
+        this.dismissItem = this.dismissItem.bind(this);
+        this.onSearchChange = this.onSearchChange.bind(this);
+        this.isSearched = this.isSearched.bind(this);
     }
 
-    onDismiss(id) {
+    dismissItem(id) {
         const updatedList = this.state.list.filter(item => item.objectID !== id);
         this.setState({
             list: updatedList
+        });
+    }
+
+    isSearched = (searchTerm) => (item) => !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+    onSearchChange(event) {
+        this.setState({
+            searchTerm: event.target.value
         });
     }
 
@@ -57,8 +68,15 @@ class App extends Component {
         return (
             <div className="App">
                 <h2>{helloWorld} {username}!!!</h2>
+                <form>
+                    <input
+                        type="text"
+                        onChange={this.onSearchChange}
+                    />
+
+                </form>
                 <ul>
-                    {list.map(item =>
+                    {this.state.list.filter(this.isSearched(this.state.searchTerm)).map(item =>
                         <li key={item.objectID}>
                             <span>
                                 <a href={item.url}>{item.title}</a>
@@ -67,42 +85,14 @@ class App extends Component {
                             <span>{item.num_comments}</span>
                             <span>{item.points}</span>
                             <span>
-                                    <button onClick={() =>
-                                        this.onDismiss(item.objectID)
-                                    }>
-                                        Dismiss
-                                    </button>
-                                </span>
-                        </li>)}
-                </ul>
-                <ul>
-                    {this.state.list.map(function (item) {
-                        return (
-                            <li key={item.objectID}>
-                                <span>
-                                    <a href={item.url}>{item.title}</a>
-                                </span>
-                                <span>{item.author}</span>
-                                <span>{item.num_comments}</span>
-                                <span>{item.points}</span>
-                            </li>
-                        );
-                    })}
-                </ul>
-
-                <ul>
-                    {list.map(item => {
-                        return (
-                            <li key={item.objectID}>
-                                <span>
-                                    <a href={item.url}>{item.title}</a>
-                                </span>
-                                <span>{item.author}</span>
-                                <span>{item.num_comments}</span>
-                                <span>{item.points}</span>
-                            </li>
-                        );
-                    })}
+                                <button onClick={() =>
+                                    this.dismissItem(item.objectID)
+                                }>
+                                    Dismiss
+                                </button>
+                            </span>
+                        </li>
+                    )}
                 </ul>
             </div>
         );
