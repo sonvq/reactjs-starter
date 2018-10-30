@@ -31,6 +31,16 @@ const users = [
     'Jane'
 ];
 
+const largeColumn = {
+    width: '40%',
+};
+const midColumn = {
+    width: '30%',
+};
+const smallColumn = {
+    width: '10%',
+};
+
 const isSearched = (searchTerm) => (item) => !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
 class Developer {
@@ -44,12 +54,31 @@ class Developer {
     }
 }
 
+class Button extends Component {
+    render() {
+        const {
+            onClick,
+            className = "",
+            children,
+        } = this.props;
+        return (
+            <button
+                onClick={onClick}
+                className={className}
+                type="button"
+            >
+                {children}
+            </button>
+        );
+    }
+}
+
 class Search extends Component {
     render() {
-        const {value, onChange} = this.props;
+        const {value, onChange, children} = this.props;
         return (
             <form>
-                <input
+                {children} <input
                     type="text"
                     value={value}
                     onChange={onChange}
@@ -63,25 +92,29 @@ class Table extends Component {
     render() {
         const {list, searchTerm, onDismiss} = this.props;
         return (
-            <ul>
+            <div className="table">
                 {list.filter(isSearched(searchTerm)).map(item =>
-                    <li key={item.objectID}>
-                        <span>
+                    <div key={item.objectID} className="table-row">
+                        <span style={largeColumn}>
                             <a href={item.url}>{item.title}</a>
                         </span>
-                        <span>{item.author}</span>
-                        <span>{item.num_comments}</span>
-                        <span>{item.points}</span>
-                        <span>
-                            <button onClick={() =>
-                                onDismiss(item.objectID)
-                            }>
-                                Dismiss
-                            </button>
+                        <span style={midColumn}>
+                            {item.author}
                         </span>
-                    </li>
+                        <span style={smallColumn}>
+                            {item.num_comments}
+                        </span>
+                        <span style={smallColumn}>
+                            {item.points}
+                        </span>
+                        <span style={smallColumn}>
+                            <Button onClick={() => onDismiss(item.objectID)}>
+                                Dismiss
+                            </Button>
+                        </span>
+                    </div>
                 )}
-            </ul>
+            </div>
         );
     }
 }
@@ -121,14 +154,17 @@ class App extends Component {
         const {list, searchTerm} = this.state;
 
         return (
-            <div className="App">
+            <div className="page">
                 <h2>{helloWorld} {firstname} {lastname}!!!</h2>
                 <h3>List of users are: {userOne}, {userTwo}, {userThree}</h3>
-                <Search
-                    onChange={this.onSearchChange}
-                    value={searchTerm}
-                />
-
+                <div className="interactions">
+                    <Search
+                        onChange={this.onSearchChange}
+                        value={searchTerm}
+                    >
+                        Input your search:
+                    </Search>
+                </div>
                 <Table
                     searchTerm={searchTerm}
                     onDismiss={this.onDismiss}
