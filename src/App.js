@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import './App.css';
 
+const DEFAULT_QUERY = 'redux';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+
 const list = [
     {
         title: 'React',
@@ -20,16 +25,7 @@ const list = [
     },
 ];
 
-const user = {
-    firstname: 'quang',
-    lastname: 'son'
-};
-
-const users = [
-    'Robin',
-    'Mary',
-    'Jane'
-];
+const helloWorld = 'Hello, Welcome to React, ';
 
 const largeColumn = {
     width: '40%',
@@ -93,6 +89,13 @@ class Table extends Component {
         const {list, searchTerm, onDismiss} = this.props;
         return (
             <div className="table">
+                <div className="table-header">
+                    <span style={largeColumn}>TITLE</span>
+                    <span style={midColumn}>AUTHOR</span>
+                    <span style={smallColumn}>COMMENTS</span>
+                    <span style={smallColumn}>POINTS</span>
+                    <span style={smallColumn}>ACTION</span>
+                </div>
                 {list.filter(isSearched(searchTerm)).map(item =>
                     <div key={item.objectID} className="table-row">
                         <span style={largeColumn}>
@@ -123,12 +126,27 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            list,
-            searchTerm: '',
+            result: null,
+            searchTerm: DEFAULT_QUERY,
         };
 
+        this.setSearchTopstories = this.setSearchTopstories.bind(this);
+        this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);
         this.onDismiss = this.onDismiss.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
+    }
+
+    setSearchTopstories(result) {
+        this.setState({ result });
+    }
+    fetchSearchTopstories(searchTerm) {
+        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+            .then(response => response.json())
+            .then(result => this.setSearchTopstories(result));
+    }
+    componentDidMount() {
+        const { searchTerm } = this.state;
+        this.fetchSearchTopstories(searchTerm);
     }
 
     onDismiss(id) {
@@ -145,18 +163,17 @@ class App extends Component {
     }
 
     render() {
-        const robin = new Developer('Robin', 'Wieruch');
-        console.log(robin.getName());
+        const currentDeveloper = new Developer('Quang', 'Son');
 
-        const helloWorld = 'Hello, welcome to React,';
-        const {firstname, lastname} = user;
-        const [userOne, userTwo, userThree] = users;
-        const {list, searchTerm} = this.state;
+        const { result, searchTerm } = this.state;
+
+        console.log(this.state);
+
+        if (!result) { return null; }
 
         return (
             <div className="page">
-                <h2>{helloWorld} {firstname} {lastname}!!!</h2>
-                <h3>List of users are: {userOne}, {userTwo}, {userThree}</h3>
+                <h1 className="center-text">{helloWorld} {currentDeveloper.getName()}!!!</h1>
                 <div className="interactions">
                     <Search
                         onChange={this.onSearchChange}
@@ -165,6 +182,15 @@ class App extends Component {
                         Input your search:
                     </Search>
                 </div>
+
+                <h2>Dynamic API Data Table</h2>
+                <Table
+                    searchTerm={searchTerm}
+                    onDismiss={this.onDismiss}
+                    list={result.hits}
+                />
+
+                <h2>Static Data Table</h2>
                 <Table
                     searchTerm={searchTerm}
                     onDismiss={this.onDismiss}

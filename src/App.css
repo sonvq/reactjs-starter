@@ -34,6 +34,10 @@
     border: 1px solid #e3e3e3;
 }
 
+.center-text {
+    text-align: center;
+}
+
 .table-header > span {
     overflow: hidden;
     text-overflow: ellipsis;
