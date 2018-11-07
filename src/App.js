@@ -115,10 +115,12 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            result: null,
+            results: null,
+            searchKey: '',
             searchTerm: DEFAULT_QUERY,
         };
 
+        this.needsToSearchTopstories = this.needsToSearchTopstories.bind(this);
         this.onSearchSubmit = this.onSearchSubmit.bind(this);
         this.setSearchTopstories = this.setSearchTopstories.bind(this);
         this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);
@@ -126,23 +128,37 @@ class App extends Component {
         this.onSearchChange = this.onSearchChange.bind(this);
     }
 
+    needsToSearchTopstories(searchTerm) {
+        return !this.state.results[searchTerm];
+    }
+
     onSearchSubmit(event) {
         const { searchTerm } = this.state;
-        this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
+        this.setState({ searchKey: searchTerm });
+
+        if (this.needsToSearchTopstories(searchTerm)) {
+            this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
+        }
         event.preventDefault();
     }
 
     setSearchTopstories(result) {
         const { hits, page } = result;
-        const oldHits = page !== 0
-            ? this.state.result.hits
+        const { searchKey, results } = this.state;
+
+        const oldHits = results && results[searchKey]
+            ? results[searchKey].hits
             : [];
+
         const updatedHits = [
             ...oldHits,
             ...hits
         ];
         this.setState({
-            result: { hits: updatedHits, page }
+            results: {
+                ...results,
+                [searchKey]: { hits: updatedHits, page }
+            }
         });
     }
     fetchSearchTopstories(searchTerm, page) {
@@ -152,19 +168,33 @@ class App extends Component {
     }
     componentDidMount() {
         const { searchTerm } = this.state;
+        this.setState({ searchKey: searchTerm });
         this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
     }
 
     onDismiss(id) {
-        const updatedHits = this.state.result.hits.filter(item => item.objectID !== id);
+        const { searchKey, results } = this.state;
+        const { hits, page } = results[searchKey];
+
+        const isNotId = item => item.objectID !== id;
+        const updatedHits = hits.filter(isNotId);
+
         this.setState({
             // result: Object.assign({}, this.state.result, { hits: updatedHits })
-            result: { ...this.state.result, hits: updatedHits }
+            results: {
+                ...results,
+                [searchKey]: { hits: updatedHits, page }
+            }
         });
     }
 
     onSearchChange(event) {
-        this.fetchSearchTopstories(event.target.value, DEFAULT_PAGE);
+        this.setState({ searchKey: event.target.value });
+
+        if (this.needsToSearchTopstories(event.target.value)) {
+            this.fetchSearchTopstories(event.target.value, DEFAULT_PAGE);
+        }
+
         this.setState({
             searchTerm: event.target.value
         });
@@ -173,10 +203,25 @@ class App extends Component {
     render() {
         const currentDeveloper = new Developer('Quang', 'Son');
 
-        const { result, searchTerm } = this.state;
-        const page = (result && result.page) || 0;
-
         console.log(this.state);
+
+        const {
+            searchTerm,
+            results,
+            searchKey
+        } = this.state;
+
+        const page = (
+            results &&
+            results[searchKey] &&
+            results[searchKey].page
+        ) || 0;
+
+        const list = (
+            results &&
+            results[searchKey] &&
+            results[searchKey].hits
+        ) || [];
 
         return (
             <div className="page">
@@ -192,14 +237,12 @@ class App extends Component {
                 </div>
 
                 <h2>Dynamic API Data Table</h2>
-                { result &&
-                    <Table
-                        onDismiss={this.onDismiss}
-                        list={result.hits}
-                    />
-                }
+                <Table
+                    onDismiss={this.onDismiss}
+                    list={list}
+                />
                 <div className="interactions">
-                    <Button onClick={() => this.fetchSearchTopstories(searchTerm, page + 1)}>
+                    <Button onClick={() => this.fetchSearchTopstories(searchKey, page + 1)}>
                         More
                     </Button>
                 </div>
